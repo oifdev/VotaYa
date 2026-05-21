@@ -32,7 +32,10 @@ export async function POST(request: Request) {
 
     const { data, error } = await admin.supabase
       .from("elecciones")
-      .insert(payload)
+      .insert({
+        ...payload,
+        organizer_id: admin.user.id,
+      })
       .select("*")
       .single();
 

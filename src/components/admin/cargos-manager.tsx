@@ -25,12 +25,13 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { cargoSchema, type CargoFormValues } from "@/lib/validators";
-import type { Cargo } from "@/types/database";
+import type { Cargo, Eleccion } from "@/types/database";
 
 const pageSize = 8;
 
 export function CargosManager() {
   const [items, setItems] = useState<Cargo[]>([]);
+  const [elecciones, setElecciones] = useState<Eleccion[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState<Cargo | null>(null);
@@ -46,6 +47,7 @@ export function CargosManager() {
   } = useForm<CargoFormValues>({
     resolver: zodResolver(cargoSchema),
     defaultValues: {
+      eleccion_id: "",
       nombre: "",
       descripcion: "",
       max_candidatos: 5,
@@ -61,10 +63,20 @@ export function CargosManager() {
   async function load() {
     setLoading(true);
     try {
-      const response = await fetch("/api/admin/cargos", { cache: "no-store" });
-      if (!response.ok) throw new Error("No se pudieron cargar los cargos.");
-      const payload = (await response.json()) as { cargos: Cargo[] };
-      setItems(payload.cargos);
+      const [cargosResponse, electionsResponse] =
+        await Promise.all([
+          fetch("/api/admin/cargos", { cache: "no-store" }),
+          fetch("/api/admin/elecciones", { cache: "no-store" }),
+        ]);
+
+      if (!cargosResponse.ok) throw new Error("No se pudieron cargar los cargos.");
+      const cargosPayload = (await cargosResponse.json()) as { cargos: Cargo[] };
+      setItems(cargosPayload.cargos);
+
+      if (electionsResponse.ok) {
+        const electionsPayload = (await electionsResponse.json()) as { elecciones: Eleccion[] };
+        setElecciones(electionsPayload.elecciones);
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Error inesperado.");
     } finally {
@@ -90,6 +102,7 @@ export function CargosManager() {
       toast.success(editing ? "Cargo actualizado." : "Cargo creado.");
       setEditing(null);
       reset({
+        eleccion_id: "",
         nombre: "",
         descripcion: "",
         max_candidatos: 5,
@@ -129,6 +142,7 @@ export function CargosManager() {
   function startEdit(item: Cargo) {
     setEditing(item);
     reset({
+      eleccion_id: item.eleccion_id ?? "",
       nombre: item.nombre,
       descripcion: item.descripcion ?? "",
       max_candidatos: item.max_candidatos,
@@ -159,6 +173,23 @@ export function CargosManager() {
         </CardHeader>
         <CardContent>
           <form className="grid gap-4" onSubmit={handleSubmit(onSubmit)}>
+            <div className="grid gap-2">
+              <Label htmlFor="eleccion_id">Eleccion</Label>
+              <Select id="eleccion_id" {...register("eleccion_id")}>
+                <option value="">Seleccione una eleccion</option>
+                {elecciones.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.nombre}
+                  </option>
+                ))}
+              </Select>
+              {errors.eleccion_id && (
+                <p className="text-sm text-destructive">
+                  {errors.eleccion_id.message}
+                </p>
+              )}
+            </div>
+
             <div className="grid gap-2">
               <Label htmlFor="nombre">Nombre del cargo</Label>
               <Input id="nombre" placeholder="Presidente" {...register("nombre")} />
@@ -221,6 +252,7 @@ export function CargosManager() {
                   onClick={() => {
                     setEditing(null);
                     reset({
+                      eleccion_id: "",
                       nombre: "",
                       descripcion: "",
                       max_candidatos: 5,
@@ -278,7 +310,7 @@ export function CargosManager() {
                       <TableCell>
                         <div className="font-medium">{item.nombre}</div>
                         <div className="text-sm text-muted-foreground">
-                          Orden {item.orden}
+                          {elecciones.find((e) => e.id === item.eleccion_id)?.nombre ?? "Sin eleccion"} | Orden {item.orden}
                         </div>
                       </TableCell>
                       <TableCell>{item.max_candidatos}</TableCell>

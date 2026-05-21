@@ -41,6 +41,7 @@ export interface Database {
       elecciones: {
         Row: {
           id: string;
+          organizer_id: string;
           nombre: string;
           descripcion: string | null;
           fecha_inicio: string;
@@ -51,6 +52,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          organizer_id?: string;
           nombre: string;
           descripcion?: string | null;
           fecha_inicio: string;
@@ -60,6 +62,7 @@ export interface Database {
           updated_at?: string;
         };
         Update: {
+          organizer_id?: string;
           nombre?: string;
           descripcion?: string | null;
           fecha_inicio?: string;
@@ -72,6 +75,7 @@ export interface Database {
       cargos: {
         Row: {
           id: string;
+          eleccion_id: string;
           nombre: string;
           descripcion: string | null;
           max_candidatos: number;
@@ -82,6 +86,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          eleccion_id: string;
           nombre: string;
           descripcion?: string | null;
           max_candidatos?: number;
@@ -91,6 +96,7 @@ export interface Database {
           updated_at?: string;
         };
         Update: {
+          eleccion_id?: string;
           nombre?: string;
           descripcion?: string | null;
           max_candidatos?: number;

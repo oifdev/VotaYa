@@ -31,8 +31,8 @@ export async function requireAdminPage() {
   try {
     const session = await getAdminSession();
 
-    if (!session.user || session.profile?.role !== "admin") {
-      redirect("/login?redirect=/admin");
+    if (!session.user) {
+      redirect("/login");
     }
 
     return session;
@@ -44,11 +44,11 @@ export async function requireAdminPage() {
 export async function requireAdminApi() {
   const session = await getAdminSession();
 
-  if (!session.user || session.profile?.role !== "admin") {
+  if (!session.user) {
     return {
       ok: false as const,
       response: NextResponse.json(
-        { message: "No autorizado. Inicie sesion como administrador." },
+        { message: "No autorizado. Inicie sesion para continuar." },
         { status: 401 },
       ),
     };

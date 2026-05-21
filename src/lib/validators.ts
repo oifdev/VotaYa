@@ -12,6 +12,7 @@ export const statusSchema = z.enum(["activo", "inactivo"]);
 export const electionStatusSchema = z.enum(["pendiente", "activa", "finalizada"]);
 
 export const cargoSchema = z.object({
+  eleccion_id: uuidSchema,
   nombre: z.string().trim().min(3, "Ingrese al menos 3 caracteres.").max(80),
   descripcion: z.string().trim().max(240).optional().nullable(),
   max_candidatos: z.number().int().min(1).max(50),

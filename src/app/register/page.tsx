@@ -1,17 +1,16 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
 
-import { LoginForm } from "@/components/auth/login-form";
+import { RegisterForm } from "@/components/auth/register-form";
 import { PublicShell } from "@/components/layout/public-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "Inicio de sesion",
+  title: "Registro de organizador",
 };
 
-export default function LoginPage() {
+export default function RegisterPage() {
   return (
     <PublicShell>
       <section className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-6xl items-center px-4 py-10 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:px-8">
@@ -20,30 +19,29 @@ export default function LoginPage() {
             <ShieldCheck className="size-7" />
           </div>
           <h1 className="text-4xl font-bold tracking-normal">
-            Administracion segura para elecciones internas
+            Crea tu propio ecosistema de votacion
           </h1>
           <p className="mt-4 text-lg leading-8 text-muted-foreground">
-            Acceda al panel para gestionar cargos, candidatos, configuracion de
-            elecciones, auditoria y resultados operativos.
+            Al registrarte como organizador, tendras acceso a un panel privado y
+            completamente aislado donde podras configurar tus elecciones, cargos,
+            y candidatos de forma autonoma.
           </p>
         </div>
 
         <Card className="mx-auto w-full max-w-md">
           <CardHeader>
-            <CardTitle>Inicio de sesion</CardTitle>
+            <CardTitle>Registro de organizador</CardTitle>
             <p className="text-sm leading-6 text-muted-foreground">
-              Use las credenciales del administrador registradas en Supabase Auth.
+              Crea una cuenta gratuita para gestionar tus elecciones.
             </p>
           </CardHeader>
           <CardContent>
-            <Suspense>
-              <LoginForm />
-            </Suspense>
+            <RegisterForm />
             
             <div className="mt-6 text-center text-sm text-muted-foreground">
-              ¿No tienes una cuenta?{" "}
-              <Link href="/register" className="font-semibold text-primary hover:underline">
-                Regístrate como organizador
+              ¿Ya tienes una cuenta?{" "}
+              <Link href="/login" className="font-semibold text-primary hover:underline">
+                Inicia sesion
               </Link>
             </div>
           </CardContent>
