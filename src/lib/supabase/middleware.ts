@@ -40,16 +40,6 @@ export async function updateSession(request: NextRequest) {
     return redirectToLogin(request, response);
   }
 
-  const { data: profile } = await supabase
-    .from("users")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (profile?.role !== "admin") {
-    return redirectToLogin(request, response);
-  }
-
   return response;
 }
 
