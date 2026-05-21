@@ -64,7 +64,10 @@ export function EleccionesManager() {
     setLoading(true);
     try {
       const response = await fetch("/api/admin/elecciones", { cache: "no-store" });
-      if (!response.ok) throw new Error("No se pudieron cargar las elecciones.");
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.message || "No se pudieron cargar las elecciones.");
+      }
       const payload = (await response.json()) as { elecciones: Eleccion[] };
       setItems(payload.elecciones);
     } catch (error) {

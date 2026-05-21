@@ -82,6 +82,7 @@ export async function getResultsPayload(
     supabase
       .from("cargos")
       .select("*")
+      .eq("eleccion_id", election.id)
       .eq("estado", "activo")
       .order("orden", { ascending: true })
       .order("nombre", { ascending: true }),

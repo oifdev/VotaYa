@@ -50,12 +50,18 @@ export function DashboardOverview() {
         fetch("/api/admin/audit", { cache: "no-store" }),
       ]);
 
-      if (!statsResponse.ok) throw new Error("No se pudieron cargar metricas.");
-      if (!logsResponse.ok) throw new Error("No se pudo cargar auditoria.");
+      const statsBody = await statsResponse.json().catch(() => ({}));
+      if (!statsResponse.ok) {
+        throw new Error(statsBody.message || "No se pudieron cargar metricas.");
+      }
+      
+      const logsBody = await logsResponse.json().catch(() => ({}));
+      if (!logsResponse.ok) {
+        throw new Error(logsBody.message || "No se pudo cargar auditoria.");
+      }
 
-      setData((await statsResponse.json()) as StatsResponse);
-      const logsPayload = (await logsResponse.json()) as { logs: AuditLog[] };
-      setLogs(logsPayload.logs);
+      setData(statsBody as StatsResponse);
+      setLogs((logsBody as { logs: AuditLog[] }).logs);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Error al cargar el dashboard.",
