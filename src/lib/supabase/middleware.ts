@@ -14,7 +14,7 @@ export async function updateSession(request: NextRequest) {
   });
 
   if (!hasSupabaseBrowserEnv() || !supabaseUrl || !supabaseAnonKey) {
-    return redirectToLogin(request, response);
+    return response;
   }
 
   const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
@@ -36,18 +36,7 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    return redirectToLogin(request, response);
-  }
-
   return response;
 }
 
-function redirectToLogin(request: NextRequest, response: NextResponse) {
-  const redirectUrl = request.nextUrl.clone();
-  redirectUrl.pathname = "/login";
-  redirectUrl.searchParams.set("redirect", request.nextUrl.pathname);
-
-  response = NextResponse.redirect(redirectUrl);
-  return response;
-}
+// Function removed
