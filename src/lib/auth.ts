@@ -8,10 +8,11 @@ export async function getAdminSession() {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
+    error,
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { supabase, user: null, profile: null };
+    return { supabase, user: null, profile: null, error };
   }
 
   const { data: profile } = await supabase
@@ -48,7 +49,7 @@ export async function requireAdminApi() {
     return {
       ok: false as const,
       response: NextResponse.json(
-        { message: "No autorizado. Inicie sesion para continuar." },
+        { message: `No autorizado. Inicie sesion para continuar. Detalle: ${session.error?.message || 'Ninguno'}` },
         { status: 401 },
       ),
     };
