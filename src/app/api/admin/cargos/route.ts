@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+export const runtime = 'nodejs';
+
 
 import { getRequestIp, writeAuditLog } from "@/lib/audit";
 import { requireAdminApi } from "@/lib/auth";

@@ -1,6 +1,8 @@
 import { requireAdminApi } from "@/lib/auth";
 import { ok, serverError } from "@/lib/api-response";
 
+export const runtime = 'nodejs';
+
 export async function GET() {
   const admin = await requireAdminApi();
   if (!admin.ok) return admin.response;
