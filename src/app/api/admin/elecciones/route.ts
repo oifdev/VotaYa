@@ -1,5 +1,6 @@
 export const runtime = 'nodejs';
 
+import { NextResponse } from "next/server";
 import { getRequestIp, writeAuditLog } from "@/lib/audit";
 import { requireAdminApi } from "@/lib/auth";
 import { badRequest, ok, sanitizeNullable, serverError } from "@/lib/api-response";

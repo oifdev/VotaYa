@@ -1,6 +1,6 @@
-import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import type { AdminUser } from '@/types/database';
 
 export async function getAdminSession() {
   const supabase = await createSupabaseServerClient();
@@ -33,8 +33,8 @@ export async function requireAdminPage() {
   }
   return session;
 }
-export async function requireAdminApi(request: Request) {
-  const session = await getAdminSession(request);
+export async function requireAdminApi(_request?: Request) {
+  const session = await getAdminSession();
 
   if (!session.user) {
     return {

@@ -1,10 +1,11 @@
 import { requireAdminApi } from "@/lib/auth";
 import { ok, serverError } from "@/lib/api-response";
+import { NextRequest } from "next/server";
 
 export const runtime = 'nodejs';
 
-export async function GET() {
-  const admin = await requireAdminApi();
+export async function GET(request: NextRequest) {
+  const admin = await requireAdminApi(request);
   if (!admin.ok) return admin.response;
 
   const { data, error } = await admin.supabase
