@@ -2,6 +2,7 @@ import { requireAdminApi } from "@/lib/auth";
 import { ok, serverError } from "@/lib/api-response";
 import { NextRequest } from "next/server";
 
+export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {

@@ -1,4 +1,5 @@
 import { getRequestIp, writeAuditLog } from "@/lib/audit";
+export const dynamic = 'force-dynamic';
 import { requireAdminApi } from "@/lib/auth";
 import { badRequest, ok, sanitizeNullable, serverError } from "@/lib/api-response";
 import { candidateSchema } from "@/lib/validators";

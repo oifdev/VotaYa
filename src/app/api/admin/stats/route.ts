@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { requireAdminApi } from "@/lib/auth";
 import { ok, serverError } from "@/lib/api-response";
 import { getResultsPayload, resultsToDashboardStats } from "@/lib/elections";
