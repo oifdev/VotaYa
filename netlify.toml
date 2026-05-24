@@ -4,9 +4,9 @@
 
 [build.environment]
   NODE_VERSION = "20"
-
-# The @netlify/plugin-nextjs is auto-installed by Netlify when it detects Next.js.
-# This ensures SSR, API routes, and middleware work as serverless functions.
+  # These NEXT_PUBLIC_ vars are intentionally public (embedded in client JS).
+  # Tell Netlify's secrets scanner to ignore them.
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_APP_URL,NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,NEXT_PUBLIC_SUPABASE_URL"
 
 [[headers]]
   for = "/*"
