@@ -8,7 +8,11 @@ export async function createSupabaseServerClient() {
   const { supabaseUrl, supabaseAnonKey } = requireSupabaseBrowserEnv();
   const cookieStore = await cookies();
 
-  return createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
+  // DEBUG PARA NETLIFY:
+  console.log("=== API ROUTE DEBUG ===");
+  console.log("ALL COOKIES:", cookieStore.getAll().map(c => c.name));
+
+  const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll();
@@ -24,4 +28,6 @@ export async function createSupabaseServerClient() {
       },
     },
   });
+
+  return supabase;
 }
