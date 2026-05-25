@@ -12,6 +12,7 @@ export async function POST(request: NextRequest) {
     const { email, password } = body as { email: string; password: string };
     const { supabaseUrl, supabaseAnonKey } = requireSupabaseBrowserEnv();
 
+    // Construimos la respuesta antes para poder adjuntarle las cookies
     const successResponse = NextResponse.json({ success: true });
 
     const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
@@ -23,7 +24,12 @@ export async function POST(request: NextRequest) {
           cookiesToSet.forEach(({ name, value, options }) => {
             successResponse.cookies.set(name, value, {
               ...options,
+              // path "/" asegura que el middleware y todas las rutas lean la cookie
               path: "/",
+              // sameSite lax permite que las cookies lleguen en navegaciones normales
+              sameSite: "lax",
+              // secure en producción (Netlify siempre es HTTPS)
+              secure: process.env.NODE_ENV === "production",
             });
           });
         },

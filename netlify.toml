@@ -4,9 +4,13 @@
 
 [build.environment]
   NODE_VERSION = "20"
-  # These NEXT_PUBLIC_ vars are intentionally public (embedded in client JS).
-  # Tell Netlify's secrets scanner to ignore them.
   SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_APP_URL,NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,NEXT_PUBLIC_SUPABASE_URL"
+
+# Esto le dice a Netlify que empaquete las funciones con nft (Node File Tracing)
+# lo que garantiza que el middleware corra en el mismo runtime que las API routes
+# y que las cookies de sesión sean visibles en ambos lados.
+[functions]
+  node_bundler = "nft"
 
 [[headers]]
   for = "/*"
