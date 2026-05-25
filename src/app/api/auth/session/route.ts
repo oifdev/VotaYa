@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     }
 }
 
-export async function DELETE(request: NextRequest) {
+export async function DELETE(_request: NextRequest) {
     const { supabaseUrl, supabaseAnonKey } = requireSupabaseBrowserEnv();
     const cookieStore = await cookies();
 

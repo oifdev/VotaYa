@@ -23,7 +23,7 @@ export async function middleware(request: NextRequest) {
       },
       // The `setAll` method will be called by Supabase when it needs to
       // set refreshed cookies. We forward them to the response.
-      setAll(cookiesToSet) {
+      setAll(_cookies: unknown) {
         // No‑op – Supabase will use the response below to set cookies.
       },
     },
@@ -35,17 +35,13 @@ export async function middleware(request: NextRequest) {
   // Build the response that will continue to the destination
   const response = NextResponse.next();
 
+
   // Copy any cookies that Supabase wants to set onto the response
   // Supabase stores them in `supabase.auth.session()`? Instead we can
   // retrieve them via the internal cookie store – but the Edge client
   // automatically adds them to the response object when `setAll` is used.
   // As a safeguard we manually copy any Set-Cookie headers from the client.
-  // @ts-ignore – internal property used for Edge.
-  const setCookieHeader = (supabase as any).__internal?.setCookie?.()
-    ?? [];
-  setCookieHeader.forEach((header: string) => {
-    response.headers.append("Set-Cookie", header);
-  });
+
 
   // Debug header – can be inspected in production
   response.headers.set("x-middleware-debug", "true");
