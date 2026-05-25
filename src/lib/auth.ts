@@ -33,7 +33,8 @@ export async function requireAdminPage() {
   }
   return session;
 }
-export async function requireAdminApi(_request?: Request) {
+
+export async function requireAdminApi() {
   const session = await getAdminSession();
 
   if (!session.user) {

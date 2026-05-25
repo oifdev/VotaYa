@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LockKeyhole, Mail } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const loginSchema = z.object({
   email: z.email("Ingrese un correo valido."),
@@ -22,7 +21,6 @@ const loginSchema = z.object({
 type LoginValues = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const redirectTo = searchParams.get("redirect") || "/admin";
@@ -53,8 +51,6 @@ export function LoginForm() {
       if (!response.ok) throw new Error(result.error || "Error al iniciar sesion");
 
       toast.success("Sesion iniciada.");
-      //router.replace(redirectTo);
-      //router.refresh();
       window.location.href = redirectTo;
     } catch (error) {
       toast.error(
