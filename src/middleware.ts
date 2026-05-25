@@ -17,44 +17,36 @@ export const runtime = "experimental-edge";
 export async function middleware(request: NextRequest) {
   const { supabaseUrl, supabaseAnonKey } = requireSupabaseBrowserEnv();
 
-  // Collect cookies that Supabase wants to set during the auth refresh
-  const pendingCookies: { name: string; value: string; options?: Record<string, unknown> }[] = [];
+  let supabaseResponse = NextResponse.next({
+    request,
+  });
 
   const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
-        // request.cookies works on Edge
         return request.cookies.getAll();
       },
-      setAll(cookies) {
-        // Supabase calls this to set refreshed cookies – we store them for later
-        pendingCookies.push(...cookies);
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+        supabaseResponse = NextResponse.next({
+          request,
+        });
+        cookiesToSet.forEach(({ name, value, options }) =>
+          supabaseResponse.cookies.set(name, value, options)
+        );
       },
     },
   });
 
-  // Refresh the session (populates any updated auth cookies)
+  // IMPORTANT: Avoid writing any logic between createServerClient and
+  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
+  // issues with users being randomly logged out.
   await supabase.auth.getUser();
 
-  // Build the response that will continue to the destination
-  const response = NextResponse.next();
-
-  // Forward any cookies Supabase asked to set
-  pendingCookies.forEach((c) => {
-    const opts = c.options || {};
-    const parts = [];
-    parts.push(`${c.name}=${c.value}`);
-    if (opts.path) parts.push(`Path=${opts.path}`);
-    if (opts.maxAge) parts.push(`Max-Age=${opts.maxAge}`);
-    if (opts.httpOnly) parts.push(`HttpOnly`);
-    if (opts.secure) parts.push(`Secure`);
-    if (opts.sameSite) parts.push(`SameSite=${opts.sameSite}`);
-    response.headers.append('Set-Cookie', parts.join('; '));
-  });
-
   // Debug header – can be inspected in production
-  response.headers.set("x-middleware-debug", "true");
-  return response;
+  supabaseResponse.headers.set("x-middleware-debug", "true");
+  
+  return supabaseResponse;
 }
 
 export const config = {
