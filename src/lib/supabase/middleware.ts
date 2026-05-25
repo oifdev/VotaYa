@@ -32,7 +32,21 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const isApiRoute = request.nextUrl.pathname.startsWith("/api/admin");
+  const isAdminPage = request.nextUrl.pathname.startsWith("/admin");
+
+  if (!user) {
+    if (isApiRoute) {
+      return NextResponse.json({ message: "No autorizado" }, { status: 401 });
+    }
+    if (isAdminPage) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("redirect", request.nextUrl.pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
 
   return response;
 }
