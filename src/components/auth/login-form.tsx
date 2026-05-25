@@ -42,10 +42,10 @@ export function LoginForm() {
   async function onSubmit(values: LoginValues) {
     setIsSubmitting(true);
     try {
-      const supabase = createSupabaseBrowserClient();
-      const { error } = await supabase.auth.signInWithPassword(values);
+      const { loginAction } = await import("@/app/login/actions");
+      const result = await loginAction(values);
 
-      if (error) throw error;
+      if (result.error) throw new Error(result.error);
 
       toast.success("Sesion iniciada.");
       router.replace(redirectTo);
