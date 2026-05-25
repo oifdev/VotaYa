@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
       cookies: {
         getAll() {
-          return [];
+          return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
           // Collect cookies to set after we confirm no error

@@ -47,14 +47,15 @@ export function LoginForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
       });
-      
+
       const result = await response.json();
 
       if (!response.ok) throw new Error(result.error || "Error al iniciar sesion");
 
       toast.success("Sesion iniciada.");
-      router.replace(redirectTo);
-      router.refresh();
+      //router.replace(redirectTo);
+      //router.refresh();
+      window.location.href = redirectTo;
     } catch (error) {
       toast.error(
         error instanceof Error
