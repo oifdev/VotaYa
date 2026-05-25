@@ -25,8 +25,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { candidatePhotoBucket } from "@/lib/constants";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { candidateSchema, type CandidateFormValues } from "@/lib/validators";
 import type { Eleccion } from "@/types/database";
 import type { CandidateWithRelations } from "@/types/domain";
@@ -113,20 +111,16 @@ export function CandidatosManager() {
   }
 
   async function uploadPhoto(file: File) {
-    const supabase = createSupabaseBrowserClient();
-    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-").toLowerCase();
-    const path = `candidates/${crypto.randomUUID()}-${safeName}`;
-    const { error } = await supabase.storage
-      .from(candidatePhotoBucket)
-      .upload(path, file, {
-        cacheControl: "31536000",
-        upsert: false,
-      });
+    const { uploadCandidatePhotoAction } = await import("@/app/admin/actions");
+    const formData = new FormData();
+    formData.append("file", file);
 
-    if (error) throw error;
+    const result = await uploadCandidatePhotoAction(formData);
+    if (result.error || !result.data) {
+      throw new Error(result.error ?? "No se pudo subir la fotografia.");
+    }
 
-    const { data } = supabase.storage.from(candidatePhotoBucket).getPublicUrl(path);
-    return data.publicUrl;
+    return result.data.publicUrl;
   }
 
   async function confirmRemove() {

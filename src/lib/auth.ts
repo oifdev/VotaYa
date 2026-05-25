@@ -28,7 +28,7 @@ export async function getAdminSession() {
 
 export async function requireAdminPage() {
   const session = await getAdminSession();
-  if (!session.user) {
+  if (!session.user || session.profile?.role !== "admin") {
     return null;
   }
   return session;
@@ -37,7 +37,7 @@ export async function requireAdminPage() {
 export async function requireAdminApi() {
   const session = await getAdminSession();
 
-  if (!session.user) {
+  if (!session.user || session.profile?.role !== "admin") {
     const { cookies } = await import("next/headers");
     const cookieStore = await cookies();
     const allCookies = cookieStore.getAll().map(c => c.name).join(", ");
