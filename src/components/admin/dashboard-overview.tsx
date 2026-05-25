@@ -45,23 +45,21 @@ export function DashboardOverview() {
   async function load() {
     setLoading(true);
     try {
-      const [statsResponse, logsResponse] = await Promise.all([
-        fetch("/api/admin/stats", { cache: "no-store", credentials: "include" }),
-        fetch("/api/admin/audit", { cache: "no-store", credentials: "include" }),
+      const { getDashboardStatsAction, getAuditLogsAction } = await import("@/app/admin/actions");
+      const [statsResult, logsResult] = await Promise.all([
+        getDashboardStatsAction(),
+        getAuditLogsAction(),
       ]);
 
-      const statsBody = await statsResponse.json().catch(() => ({}));
-      if (!statsResponse.ok) {
-        throw new Error(statsBody.message || "No se pudieron cargar metricas.");
+      if (statsResult.error || !statsResult.data) {
+        throw new Error(statsResult.error || "No se pudieron cargar metricas.");
       }
-      
-      const logsBody = await logsResponse.json().catch(() => ({}));
-      if (!logsResponse.ok) {
-        throw new Error(logsBody.message || "No se pudo cargar auditoria.");
+      if (logsResult.error || !logsResult.data) {
+        throw new Error(logsResult.error || "No se pudo cargar auditoria.");
       }
 
-      setData(statsBody as StatsResponse);
-      setLogs((logsBody as { logs: AuditLog[] }).logs);
+      setData(statsResult.data);
+      setLogs(logsResult.data.logs);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Error al cargar el dashboard.",

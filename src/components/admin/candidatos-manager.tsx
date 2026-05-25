@@ -63,25 +63,20 @@ export function CandidatosManager() {
   async function load() {
     setLoading(true);
     try {
-      const [candidatesResponse, electionsResponse] =
-        await Promise.all([
-          fetch("/api/admin/candidatos", { cache: "no-store", credentials: "include" }),
-          fetch("/api/admin/elecciones", { cache: "no-store", credentials: "include" }),
-        ]);
+      const { getCandidatosAction, getEleccionesAction } = await import("@/app/admin/actions");
+      const [candidatesResult, electionsResult] = await Promise.all([
+        getCandidatosAction(),
+        getEleccionesAction(),
+      ]);
 
-      if (!candidatesResponse.ok) {
-        throw new Error("No se pudieron cargar los candidatos.");
+      if (candidatesResult.error || !candidatesResult.data) {
+        throw new Error(candidatesResult.error || "No se pudieron cargar los candidatos.");
       }
+      setItems(candidatesResult.data.candidatos);
 
-      const candidatesPayload = (await candidatesResponse.json()) as {
-        candidatos: CandidateWithRelations[];
-      };
-      const electionsPayload = (await electionsResponse.json()) as {
-        elecciones: Eleccion[];
-      };
-
-      setItems(candidatesPayload.candidatos);
-      setElecciones(electionsPayload.elecciones);
+      if (!electionsResult.error && electionsResult.data) {
+        setElecciones(electionsResult.data.elecciones);
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Error inesperado.");
     } finally {
@@ -98,20 +93,12 @@ export function CandidatosManager() {
         foto_url: fotoUrl || null,
       };
 
-      const response = await fetch(
-        editing
-          ? `/api/admin/candidatos/${editing.id}`
-          : "/api/admin/candidatos",
-        {
-          method: editing ? "PATCH" : "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-          credentials: "include",
-        },
-      );
+      const { createCandidatoAction, updateCandidatoAction } = await import("@/app/admin/actions");
+      const result = editing
+        ? await updateCandidatoAction(editing.id, payload)
+        : await createCandidatoAction(payload);
 
-      const body = await response.json();
-      if (!response.ok) throw new Error(body.message);
+      if (result.error) throw new Error(result.error);
 
       toast.success(editing ? "Candidato actualizado." : "Candidato creado.");
       setEditing(null);
@@ -145,12 +132,9 @@ export function CandidatosManager() {
   async function confirmRemove() {
     if (!itemToDelete) return;
     try {
-      const response = await fetch(`/api/admin/candidatos/${itemToDelete.id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      const body = await response.json();
-      if (!response.ok) throw new Error(body.message);
+      const { deleteCandidatoAction } = await import("@/app/admin/actions");
+      const result = await deleteCandidatoAction(itemToDelete.id);
+      if (result.error) throw new Error(result.error);
       toast.success("Candidato eliminado.");
       await load();
     } catch (error) {

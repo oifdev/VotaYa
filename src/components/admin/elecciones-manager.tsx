@@ -63,13 +63,12 @@ export function EleccionesManager() {
   async function load() {
     setLoading(true);
     try {
-      const response = await fetch("/api/admin/elecciones", { cache: "no-store", credentials: "include" });
-      if (!response.ok) {
-        const body = await response.json().catch(() => ({}));
-        throw new Error(body.message || "No se pudieron cargar las elecciones.");
+      const { getEleccionesAction } = await import("@/app/admin/actions");
+      const result = await getEleccionesAction();
+      if (result.error || !result.data) {
+        throw new Error(result.error || "No se pudieron cargar las elecciones.");
       }
-      const payload = (await response.json()) as { elecciones: Eleccion[] };
-      setItems(payload.elecciones);
+      setItems(result.data.elecciones);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Error inesperado.");
     } finally {
@@ -80,23 +79,18 @@ export function EleccionesManager() {
   async function onSubmit(values: ElectionFormValues) {
     setSaving(true);
     try {
+      const { createEleccionAction, updateEleccionAction } = await import("@/app/admin/actions");
       const payload = {
         ...values,
         fecha_inicio: new Date(values.fecha_inicio).toISOString(),
         fecha_cierre: new Date(values.fecha_cierre).toISOString(),
       };
-      const response = await fetch(
-        editing ? `/api/admin/elecciones/${editing.id}` : "/api/admin/elecciones",
-        {
-          method: editing ? "PATCH" : "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-          credentials: "include",
-        },
-      );
 
-      const body = await response.json();
-      if (!response.ok) throw new Error(body.message);
+      const result = editing
+        ? await updateEleccionAction(editing.id, payload)
+        : await createEleccionAction(payload);
+
+      if (result.error) throw new Error(result.error);
 
       toast.success(editing ? "Eleccion actualizada." : "Eleccion creada.");
       setEditing(null);
@@ -113,12 +107,9 @@ export function EleccionesManager() {
     if (!itemToDelete) return;
 
     try {
-      const response = await fetch(`/api/admin/elecciones/${itemToDelete.id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      const body = await response.json();
-      if (!response.ok) throw new Error(body.message);
+      const { deleteEleccionAction } = await import("@/app/admin/actions");
+      const result = await deleteEleccionAction(itemToDelete.id);
+      if (result.error) throw new Error(result.error);
       toast.success("Eleccion eliminada.");
       await load();
     } catch (error) {

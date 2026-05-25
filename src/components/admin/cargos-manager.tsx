@@ -63,19 +63,19 @@ export function CargosManager() {
   async function load() {
     setLoading(true);
     try {
-      const [cargosResponse, electionsResponse] =
-        await Promise.all([
-          fetch("/api/admin/cargos", { cache: "no-store", credentials: "include" }),
-          fetch("/api/admin/elecciones", { cache: "no-store", credentials: "include" }),
-        ]);
+      const { getCargosAction, getEleccionesAction } = await import("@/app/admin/actions");
+      const [cargosResult, electionsResult] = await Promise.all([
+        getCargosAction(),
+        getEleccionesAction(),
+      ]);
 
-      if (!cargosResponse.ok) throw new Error("No se pudieron cargar los cargos.");
-      const cargosPayload = (await cargosResponse.json()) as { cargos: Cargo[] };
-      setItems(cargosPayload.cargos);
+      if (cargosResult.error || !cargosResult.data) {
+        throw new Error(cargosResult.error || "No se pudieron cargar los cargos.");
+      }
+      setItems(cargosResult.data.cargos);
 
-      if (electionsResponse.ok) {
-        const electionsPayload = (await electionsResponse.json()) as { elecciones: Eleccion[] };
-        setElecciones(electionsPayload.elecciones);
+      if (!electionsResult.error && electionsResult.data) {
+        setElecciones(electionsResult.data.elecciones);
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Error inesperado.");
@@ -87,18 +87,12 @@ export function CargosManager() {
   async function onSubmit(values: CargoFormValues) {
     setSaving(true);
     try {
-      const response = await fetch(
-        editing ? `/api/admin/cargos/${editing.id}` : "/api/admin/cargos",
-        {
-          method: editing ? "PATCH" : "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(values),
-          credentials: "include",
-        },
-      );
+      const { createCargoAction, updateCargoAction } = await import("@/app/admin/actions");
+      const result = editing
+        ? await updateCargoAction(editing.id, values)
+        : await createCargoAction(values);
 
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.message);
+      if (result.error) throw new Error(result.error);
 
       toast.success(editing ? "Cargo actualizado." : "Cargo creado.");
       setEditing(null);
@@ -122,12 +116,9 @@ export function CargosManager() {
     if (!itemToDelete) return;
 
     try {
-      const response = await fetch(`/api/admin/cargos/${itemToDelete.id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.message);
+      const { deleteCargoAction } = await import("@/app/admin/actions");
+      const result = await deleteCargoAction(itemToDelete.id);
+      if (result.error) throw new Error(result.error);
       toast.success("Cargo eliminado.");
       await load();
     } catch (error) {
