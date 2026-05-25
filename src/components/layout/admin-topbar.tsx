@@ -40,7 +40,7 @@ export function AdminTopbar() {
             const Icon = item.icon;
             const active =
               pathname === item.href ||
-              (item.href !== "/admin" && pathname.startsWith(item.href));
+              (item.href !== "/admin" && pathname?.startsWith(item.href));
 
             return (
               <Link

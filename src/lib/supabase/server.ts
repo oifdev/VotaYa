@@ -4,11 +4,13 @@ import { createServerClient } from "@supabase/ssr";
 import { requireSupabaseBrowserEnv } from "@/lib/supabase/config";
 import type { Database } from "@/types/database";
 
-export async function createSupabaseServerClient() {
+export async function createSupabaseServerClient(supabaseKey?: string) {
   const { supabaseUrl, supabaseAnonKey } = requireSupabaseBrowserEnv();
   const cookieStore = await cookies();
 
-  const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
+  const key = supabaseKey ?? supabaseAnonKey;
+
+  const supabase = createServerClient<Database>(supabaseUrl, key, {
     cookies: {
       getAll() {
         return cookieStore.getAll();

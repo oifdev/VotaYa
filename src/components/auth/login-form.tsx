@@ -24,7 +24,7 @@ type LoginValues = z.infer<typeof loginSchema>;
 export function LoginForm() {
   const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const redirectTo = searchParams.get("redirect") || "/admin";
+  const redirectTo = (searchParams?.get("redirect")) || "/admin";
 
   const {
     register,

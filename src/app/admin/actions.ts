@@ -8,13 +8,19 @@ import { User } from "@supabase/supabase-js"
 
 
 type ActionResult<T> = { data: T; error?: never } | { data?: never; error: string };
+import { requireSupabaseServiceEnv } from "@/lib/supabase/config";
+
 
 async function getAdminSupabase() {
+  const { supabaseServiceRoleKey } = requireSupabaseServiceEnv();
 
-  const supabase = await createSupabaseServerClient();
+  // Pasa la clave directamente, no como un objeto
+  const supabase = await createSupabaseServerClient(supabaseServiceRoleKey);
+
   const dummyUser = { id: "public" } as User;
   return { supabase, user: dummyUser, error: null };
 }
+
 
 export async function getDashboardStatsAction(): Promise<ActionResult<{ stats: DashboardStats; results: ResultsPayload }>> {
   const admin = await getAdminSupabase();
