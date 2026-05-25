@@ -6,6 +6,8 @@ import type { Database } from "@/types/database";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+import { cookies } from "next/headers";
+
 export async function POST(request: NextRequest) {
     try {
         const { access_token, refresh_token } = await request.json();
@@ -14,14 +16,14 @@ export async function POST(request: NextRequest) {
         }
 
         const { supabaseUrl, supabaseAnonKey } = requireSupabaseBrowserEnv();
-        const response = NextResponse.json({ success: true });
+        const cookieStore = await cookies();
 
         const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
             cookies: {
-                getAll() { return request.cookies.getAll(); },
+                getAll() { return cookieStore.getAll(); },
                 setAll(cookiesToSet) {
                     cookiesToSet.forEach(({ name, value, options }) => {
-                        response.cookies.set(name, value, {
+                        cookieStore.set(name, value, {
                             ...options,
                             path: "/",
                             sameSite: "lax",
@@ -39,7 +41,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: error.message }, { status: 401 });
         }
 
-        return response;
+        return NextResponse.json({ success: true });
     } catch (err) {
         console.error("Session sync error:", err);
         return NextResponse.json({ error: "Error interno" }, { status: 500 });
@@ -48,19 +50,19 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
     const { supabaseUrl, supabaseAnonKey } = requireSupabaseBrowserEnv();
-    const response = NextResponse.json({ success: true });
+    const cookieStore = await cookies();
 
     const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
         cookies: {
-            getAll() { return request.cookies.getAll(); },
+            getAll() { return cookieStore.getAll(); },
             setAll(cookiesToSet) {
                 cookiesToSet.forEach(({ name, value, options }) => {
-                    response.cookies.set(name, value, { ...options, path: "/" });
+                    cookieStore.set(name, value, { ...options, path: "/" });
                 });
             },
         },
     });
 
     await supabase.auth.signOut();
-    return response;
+    return NextResponse.json({ success: true });
 }
