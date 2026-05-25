@@ -6,6 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
+
 export type ElectionStatus = "pendiente" | "activa" | "finalizada";
 export type RecordStatus = "activo" | "inactivo";
 export type UserRole = "admin" | "auditor";
