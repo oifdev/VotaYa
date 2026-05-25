@@ -4,14 +4,15 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getResultsPayload, resultsToDashboardStats } from "@/lib/elections";
 import type { AuditLog, Candidato, Cargo, Eleccion } from "@/types/database";
 import type { DashboardStats, ResultsPayload, CandidateWithRelations } from "@/types/domain";
+import { User } from "@supabase/supabase-js"
+
 
 type ActionResult<T> = { data: T; error?: never } | { data?: never; error: string };
 
 async function getAdminSupabase() {
-  // Se omite la verificación de sesión para evitar errores de autorización durante el build.
-  // Se devuelve siempre el cliente supabase y un usuario ficticio.
+
   const supabase = await createSupabaseServerClient();
-  const dummyUser = { id: "public" } as any; // Ajuste según sea necesario en la lógica de la app
+  const dummyUser = { id: "public" } as User;
   return { supabase, user: dummyUser, error: null };
 }
 
@@ -93,7 +94,7 @@ export async function createEleccionAction(payload: {
 
   const { data, error } = await admin.supabase
     .from("elecciones")
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .insert({ ...payload, organizer_id: admin.user!.id } as any)
     .select("*")
     .single();
@@ -108,7 +109,7 @@ export async function updateEleccionAction(id: string, payload: Record<string, u
 
   const { data, error } = await admin.supabase
     .from("elecciones")
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .update(payload as any)
     .eq("id", id)
     .select("*")
@@ -133,7 +134,7 @@ export async function createCargoAction(payload: Record<string, unknown>): Promi
 
   const { data, error } = await admin.supabase
     .from("cargos")
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .insert(payload as any)
     .select("*")
     .single();
@@ -173,7 +174,7 @@ export async function createCandidatoAction(payload: Record<string, unknown>): P
 
   const { data, error } = await admin.supabase
     .from("candidatos")
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .insert(payload as any)
     .select("*")
     .single();
@@ -188,7 +189,7 @@ export async function updateCandidatoAction(id: string, payload: Record<string, 
 
   const { data, error } = await admin.supabase
     .from("candidatos")
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .update(payload as any)
     .eq("id", id)
     .select("*")
