@@ -4,11 +4,8 @@
 
 [build.environment]
   NODE_VERSION = "20"
-  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_APP_URL,NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,NEXT_PUBLIC_SUPABASE_URL"
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_APP_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,NEXT_PUBLIC_SUPABASE_URL"
 
-# Esto le dice a Netlify que empaquete las funciones con nft (Node File Tracing)
-# lo que garantiza que el middleware corra en el mismo runtime que las API routes
-# y que las cookies de sesión sean visibles en ambos lados.
 [functions]
   node_bundler = "nft"
 

@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const loginSchema = z.object({
   email: z.email("Ingrese un correo valido."),
@@ -31,32 +32,25 @@ export function LoginForm() {
     formState: { errors },
   } = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+    defaultValues: { email: "", password: "" },
   });
 
   async function onSubmit(values: LoginValues) {
     setIsSubmitting(true);
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+      const supabase = createSupabaseBrowserClient();
+      const { error } = await supabase.auth.signInWithPassword({
+        email: values.email,
+        password: values.password,
       });
 
-      const result = await response.json();
-
-      if (!response.ok) throw new Error(result.error || "Error al iniciar sesion");
+      if (error) throw new Error(error.message);
 
       toast.success("Sesion iniciada.");
       window.location.href = redirectTo;
     } catch (error) {
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "No fue posible iniciar sesion.",
+        error instanceof Error ? error.message : "No fue posible iniciar sesion.",
       );
     } finally {
       setIsSubmitting(false);
