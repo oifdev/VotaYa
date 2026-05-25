@@ -15,22 +15,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const supabase = createSupabaseBrowserClient();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-          // Sincronizar sesión hacia el servidor para que el middleware
-          // pueda leerla desde las cookies en el próximo request
-          await fetch("/api/auth/session", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              access_token: session?.access_token,
-              refresh_token: session?.refresh_token,
-            }),
-          });
-        }
-
+      (event) => {
+        // @supabase/ssr automatically handles cookie sync in the browser
+        // we no longer need manual fetch to /api/auth/session
         if (event === "SIGNED_OUT") {
-          await fetch("/api/auth/session", { method: "DELETE" });
+          window.location.href = "/login";
         }
       }
     );

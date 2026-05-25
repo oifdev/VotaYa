@@ -38,16 +38,11 @@ export function LoginForm() {
   async function onSubmit(values: LoginValues) {
     setIsSubmitting(true);
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
-      });
+      const { loginAction } = await import("@/app/login/actions");
+      const result = await loginAction(values);
 
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(data.error || "Error de credenciales");
+      if (result.error) {
+        throw new Error(result.error);
       }
 
       toast.success("Sesion iniciada.");
