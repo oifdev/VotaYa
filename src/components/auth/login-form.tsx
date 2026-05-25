@@ -38,35 +38,19 @@ export function LoginForm() {
   async function onSubmit(values: LoginValues) {
     setIsSubmitting(true);
     try {
-      const supabase = createSupabaseBrowserClient();
-
-      // 1. Login con Supabase desde el cliente
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: values.email,
-        password: values.password,
-      });
-
-      if (error) throw new Error(error.message);
-      if (!data.session) throw new Error("No se obtuvo sesion");
-
-      // 2. Sincronizar la sesión al servidor ANTES de navegar.
-      //    Esto escribe las cookies httpOnly que el middleware necesita.
-      //    Esperamos la respuesta para garantizar que las cookies
-      //    estén escritas antes de que el navegador haga el siguiente request.
-      const syncRes = await fetch("/api/auth/session", {
+      const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          access_token: data.session.access_token,
-          refresh_token: data.session.refresh_token,
-        }),
+        body: JSON.stringify(values),
       });
 
-      if (!syncRes.ok) throw new Error("Error al sincronizar sesion");
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.error || "Error de credenciales");
+      }
 
       toast.success("Sesion iniciada.");
-
-      // 3. Navegar solo después de que las cookies están confirmadas
       window.location.href = redirectTo;
     } catch (error) {
       toast.error(

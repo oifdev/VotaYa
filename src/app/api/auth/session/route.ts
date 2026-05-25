@@ -28,7 +28,6 @@ export async function POST(request: NextRequest) {
                             path: "/",
                             sameSite: "lax",
                             secure: process.env.NODE_ENV === "production",
-                            httpOnly: true,
                         });
                     });
                 },
