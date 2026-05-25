@@ -9,6 +9,8 @@ import {
 import type { Database } from "@/types/database";
 
 export async function updateSession(request: NextRequest) {
+  // IMPORTANT: Do NOT create separate redirect/error responses.
+  // Always return supabaseResponse so refreshed cookies are preserved.
   let supabaseResponse = NextResponse.next({ request });
 
   if (!hasSupabaseBrowserEnv() || !supabaseUrl || !supabaseAnonKey) {
@@ -32,21 +34,12 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  const { data: { user } } = await supabase.auth.getUser();
-
-  const isApiRoute = request.nextUrl.pathname.startsWith("/api/admin");
-  const isAdminPage = request.nextUrl.pathname.startsWith("/admin");
-
-  if (!user) {
-    if (isApiRoute) {
-      return NextResponse.json({ message: "No autorizado" }, { status: 401 });
-    }
-    if (isAdminPage) {
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("redirect", request.nextUrl.pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-  }
+  // This call refreshes the session token if needed.
+  // The refreshed cookies are saved in supabaseResponse via setAll above.
+  // We intentionally do NOT redirect here — the layout handles auth redirects.
+  // If we returned a different response (redirect/json), the refreshed
+  // cookies would be lost and the session would break on next navigation.
+  await supabase.auth.getUser();
 
   return supabaseResponse;
 }
