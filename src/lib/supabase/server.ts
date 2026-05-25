@@ -8,10 +8,6 @@ export async function createSupabaseServerClient() {
   const { supabaseUrl, supabaseAnonKey } = requireSupabaseBrowserEnv();
   const cookieStore = await cookies();
 
-  // DEBUG PARA NETLIFY:
-  console.log("=== API ROUTE DEBUG ===");
-  console.log("ALL COOKIES:", cookieStore.getAll().map(c => c.name));
-
   const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
@@ -22,8 +18,9 @@ export async function createSupabaseServerClient() {
           cookiesToSet.forEach(({ name, value, options }) => {
             cookieStore.set(name, value, options);
           });
-        } catch (error) {
-          console.error("Error setting cookies:", error);
+        } catch {
+          // En rutas de solo lectura (Server Components) esto puede fallar,
+          // es seguro ignorarlo porque el middleware ya maneja el refresco.
         }
       },
     },
