@@ -42,10 +42,15 @@ export function LoginForm() {
   async function onSubmit(values: LoginValues) {
     setIsSubmitting(true);
     try {
-      const { loginAction } = await import("@/app/login/actions");
-      const result = await loginAction(values);
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+      
+      const result = await response.json();
 
-      if (result.error) throw new Error(result.error);
+      if (!response.ok) throw new Error(result.error || "Error al iniciar sesion");
 
       toast.success("Sesion iniciada.");
       router.replace(redirectTo);

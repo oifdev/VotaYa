@@ -22,8 +22,8 @@ export async function createSupabaseServerClient() {
           cookiesToSet.forEach(({ name, value, options }) => {
             cookieStore.set(name, value, options);
           });
-        } catch {
-          // Server components cannot always write cookies; middleware refreshes them.
+        } catch (error) {
+          console.error("Error setting cookies:", error);
         }
       },
     },
