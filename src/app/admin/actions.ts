@@ -141,7 +141,7 @@ export async function createCargoAction(payload: Record<string, unknown>): Promi
   const { data, error } = await admin.supabase
     .from("cargos")
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .insert(payload as any)
+    .insert({ ...payload, organizer_id: admin.user!.id } as any)
     .select("*")
     .single();
 
@@ -181,7 +181,7 @@ export async function createCandidatoAction(payload: Record<string, unknown>): P
   const { data, error } = await admin.supabase
     .from("candidatos")
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .insert(payload as any)
+    .insert({ ...payload, organizer_id: admin.user!.id } as any)
     .select("*")
     .single();
 
