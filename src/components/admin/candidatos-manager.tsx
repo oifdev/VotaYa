@@ -65,8 +65,8 @@ export function CandidatosManager() {
     try {
       const [candidatesResponse, electionsResponse] =
         await Promise.all([
-          fetch("/api/admin/candidatos", { cache: "no-store" }),
-          fetch("/api/admin/elecciones", { cache: "no-store" }),
+          fetch("/api/admin/candidatos", { cache: "no-store", credentials: "include" }),
+          fetch("/api/admin/elecciones", { cache: "no-store", credentials: "include" }),
         ]);
 
       if (!candidatesResponse.ok) {
@@ -106,6 +106,7 @@ export function CandidatosManager() {
           method: editing ? "PATCH" : "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
+          credentials: "include",
         },
       );
 
@@ -146,6 +147,7 @@ export function CandidatosManager() {
     try {
       const response = await fetch(`/api/admin/candidatos/${itemToDelete.id}`, {
         method: "DELETE",
+        credentials: "include",
       });
       const body = await response.json();
       if (!response.ok) throw new Error(body.message);

@@ -65,8 +65,8 @@ export function CargosManager() {
     try {
       const [cargosResponse, electionsResponse] =
         await Promise.all([
-          fetch("/api/admin/cargos", { cache: "no-store" }),
-          fetch("/api/admin/elecciones", { cache: "no-store" }),
+          fetch("/api/admin/cargos", { cache: "no-store", credentials: "include" }),
+          fetch("/api/admin/elecciones", { cache: "no-store", credentials: "include" }),
         ]);
 
       if (!cargosResponse.ok) throw new Error("No se pudieron cargar los cargos.");
@@ -93,6 +93,7 @@ export function CargosManager() {
           method: editing ? "PATCH" : "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(values),
+          credentials: "include",
         },
       );
 
@@ -123,6 +124,7 @@ export function CargosManager() {
     try {
       const response = await fetch(`/api/admin/cargos/${itemToDelete.id}`, {
         method: "DELETE",
+        credentials: "include",
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.message);

@@ -63,7 +63,7 @@ export function EleccionesManager() {
   async function load() {
     setLoading(true);
     try {
-      const response = await fetch("/api/admin/elecciones", { cache: "no-store" });
+      const response = await fetch("/api/admin/elecciones", { cache: "no-store", credentials: "include" });
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
         throw new Error(body.message || "No se pudieron cargar las elecciones.");
@@ -91,6 +91,7 @@ export function EleccionesManager() {
           method: editing ? "PATCH" : "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
+          credentials: "include",
         },
       );
 
@@ -114,6 +115,7 @@ export function EleccionesManager() {
     try {
       const response = await fetch(`/api/admin/elecciones/${itemToDelete.id}`, {
         method: "DELETE",
+        credentials: "include",
       });
       const body = await response.json();
       if (!response.ok) throw new Error(body.message);

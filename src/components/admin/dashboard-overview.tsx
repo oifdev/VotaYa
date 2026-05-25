@@ -46,8 +46,8 @@ export function DashboardOverview() {
     setLoading(true);
     try {
       const [statsResponse, logsResponse] = await Promise.all([
-        fetch("/api/admin/stats", { cache: "no-store" }),
-        fetch("/api/admin/audit", { cache: "no-store" }),
+        fetch("/api/admin/stats", { cache: "no-store", credentials: "include" }),
+        fetch("/api/admin/audit", { cache: "no-store", credentials: "include" }),
       ]);
 
       const statsBody = await statsResponse.json().catch(() => ({}));
