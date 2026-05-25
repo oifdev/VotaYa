@@ -1,31 +1,33 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 /**
- * Escucha cambios de sesión del SDK del cliente y los sincroniza
- * hacia el servidor via /api/auth/session. Esto es necesario porque
- * el SDK del browser guarda la sesión en localStorage, pero el
- * middleware del servidor solo lee cookies. Sin este puente, el
- * servidor nunca sabe que el usuario inició sesión.
+ * Keeps server components fresh after client-side auth changes.
+ * Cookie persistence is handled by @supabase/ssr and middleware.
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event) => {
-        // @supabase/ssr automatically handles cookie sync in the browser
-        // we no longer need manual fetch to /api/auth/session
-        if (event === "SIGNED_OUT") {
-          window.location.href = "/login";
-        }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        router.refresh();
       }
-    );
+
+      if (event === "SIGNED_OUT") {
+        window.location.href = "/login";
+      }
+    });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [router]);
 
   return <>{children}</>;
 }

@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LockKeyhole, Mail, User } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -12,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const registerSchema = z.object({
   full_name: z.string().min(3, "Ingrese su nombre completo."),
@@ -23,7 +21,6 @@ const registerSchema = z.object({
 type RegisterValues = z.infer<typeof registerSchema>;
 
 export function RegisterForm() {
-  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -42,22 +39,12 @@ export function RegisterForm() {
   async function onSubmit(values: RegisterValues) {
     setIsSubmitting(true);
     try {
-      const supabase = createSupabaseBrowserClient();
-      const { error } = await supabase.auth.signUp({
-        email: values.email,
-        password: values.password,
-        options: {
-          data: {
-            full_name: values.full_name,
-          },
-        },
-      });
+      const { registerAction } = await import("@/app/register/actions");
+      const result = await registerAction(values);
 
-      if (error) throw error;
+      if (result?.error) throw new Error(result.error);
 
-      toast.success("Registro exitoso. Iniciando sesion...");
-      router.replace("/admin");
-      router.refresh();
+      toast.success(result?.success ?? "Registro exitoso.");
     } catch (error) {
       toast.error(
         error instanceof Error

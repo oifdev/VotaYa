@@ -1,6 +1,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import type { AdminUser } from '@/types/database';
+import { createSupabaseServiceClient } from "@/lib/supabase/service";
 
 export async function getAdminSession() {
   const supabase = await createSupabaseServerClient();
@@ -13,17 +14,44 @@ export async function getAdminSession() {
     return { supabase, user: null, profile: null, error };
   }
 
-  const { data: profile } = await supabase
+  let { data: profile } = await supabase
     .from("users")
     .select("*")
     .eq("id", user.id)
     .maybeSingle();
+
+  if (!profile) {
+    profile = await ensureProfile(user.id, user.email ?? "");
+  }
 
   return {
     supabase,
     user,
     profile: profile as AdminUser | null,
   };
+}
+
+async function ensureProfile(userId: string, email: string) {
+  try {
+    const service = createSupabaseServiceClient();
+    const { data } = await service
+      .from("users")
+      .upsert(
+        {
+          id: userId,
+          email,
+          full_name: email,
+          role: "admin",
+        },
+        { onConflict: "id" },
+      )
+      .select("*")
+      .single();
+
+    return data;
+  } catch {
+    return null;
+  }
 }
 
 export async function requireAdminPage() {

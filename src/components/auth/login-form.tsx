@@ -39,14 +39,11 @@ export function LoginForm() {
     setIsSubmitting(true);
     try {
       const { loginAction } = await import("@/app/login/actions");
-      const result = await loginAction(values);
+      const result = await loginAction(values, redirectTo);
 
-      if (result.error) {
+      if (result?.error) {
         throw new Error(result.error);
       }
-
-      toast.success("Sesion iniciada.");
-      window.location.href = redirectTo;
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "No fue posible iniciar sesion.",
