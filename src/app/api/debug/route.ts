@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   const allCookies = cookieStore.getAll();
   const reqCookies = request.cookies.getAll();
   
-  return NextResponse.json({
+  const response = NextResponse.json({
     message: "Debug information",
     cookies_from_headers: allCookies,
     cookies_from_request: reqCookies,
@@ -18,4 +18,7 @@ export async function GET(request: NextRequest) {
       SUPABASE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ? "Exists" : "Missing",
     }
   });
+
+  response.cookies.set("test-cookie", "hello-world", { maxAge: 60 });
+  return response;
 }
