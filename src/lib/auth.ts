@@ -38,10 +38,13 @@ export async function requireAdminApi() {
   const session = await getAdminSession();
 
   if (!session.user) {
+    const { cookies } = await import("next/headers");
+    const cookieStore = await cookies();
+    const allCookies = cookieStore.getAll().map(c => c.name).join(", ");
     return {
       ok: false as const,
       response: NextResponse.json(
-        { message: `No autorizado. Inicie sesion para continuar. Detalle: ${session.error?.message || 'Ninguno'}` },
+        { message: `No autorizado. Inicie sesion para continuar. Detalle: ${session.error?.message || 'Ninguno'}. Cookies received: ${allCookies}` },
         { status: 401 },
       ),
     };
