@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   ChevronLeft,
   ClipboardList,
+  Info,
   ShieldCheck,
   Vote,
 } from "lucide-react";
@@ -24,7 +25,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { formatDateTime, getBallotNumber } from "@/lib/utils";
-import { voterSchema, type VoterFormValues } from "@/lib/validators";
+import {
+  voterIdentitySchema,
+  type VoterFormValues,
+  type VoterIdentityFormValues,
+} from "@/lib/validators";
 import type { VotingContext } from "@/types/domain";
 
 type Step = "identity" | "ballot" | "confirm" | "done";
@@ -37,6 +42,12 @@ export function VoteFlow() {
   const [selections, setSelections] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [alreadyVotedOpen, setAlreadyVotedOpen] = useState(false);
+  const [alreadyVoted, setAlreadyVoted] = useState(false);
+  const [identityFeedback, setIdentityFeedback] = useState<string | null>(null);
+
+  function normalizeIdentity(value: string) {
+    return value.replace(/\D/g, "");
+  }
 
   const allCargosAssigned = useMemo(() => {
     if (!context) return false;
@@ -65,14 +76,26 @@ export function VoteFlow() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
-  } = useForm<VoterFormValues>({
-    resolver: zodResolver(voterSchema),
+  } = useForm<VoterIdentityFormValues>({
+    resolver: zodResolver(voterIdentitySchema),
     defaultValues: {
-      nombre_completo: "",
       identidad: "",
     },
   });
+
+  const watchedIdentity = watch("identidad");
+
+  // If the user edits the identity after a successful validation, invalidate the resolved name.
+  useEffect(() => {
+    if (!voter) return;
+    if (normalizeIdentity(watchedIdentity) !== normalizeIdentity(voter.identidad)) {
+      setVoter(null);
+      setAlreadyVoted(false);
+      setIdentityFeedback(null);
+    }
+  }, [watchedIdentity, voter]);
 
   useEffect(() => {
     async function loadContext() {
@@ -94,27 +117,59 @@ export function VoteFlow() {
     void loadContext();
   }, []);
 
-  async function validateVoter(values: VoterFormValues) {
+  async function validateVoter(values: VoterIdentityFormValues) {
     if (!context?.election) return;
 
-    const response = await fetch("/api/voting/validate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        eleccion_id: context.election.id,
+    setIdentityFeedback(null);
+    setAlreadyVoted(false);
+
+    try {
+      const response = await fetch("/api/voting/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eleccion_id: context.election.id,
+          identidad: values.identidad,
+        }),
+      });
+
+      const payload = (await response.json()) as {
+        message?: string;
+        alreadyVoted?: boolean;
+        nombre_completo?: string;
+      };
+
+      if (!response.ok) {
+        const message =
+          String(payload?.message ?? "No se pudo validar la identidad.");
+        setIdentityFeedback(message);
+        toast.error(message);
+        return;
+      }
+
+      const nombre = String(payload.nombre_completo ?? "").trim();
+      setVoter({
         identidad: values.identidad,
-      }),
-    });
+        nombre_completo: nombre,
+      } satisfies VoterFormValues);
 
-    const payload = await response.json();
-    if (!response.ok) throw new Error(payload.message);
-    if (payload.alreadyVoted) {
-      setAlreadyVotedOpen(true);
-      return;
+      if (payload.alreadyVoted) {
+        setAlreadyVoted(true);
+        setAlreadyVotedOpen(true);
+        setIdentityFeedback(
+          "Esta identidad ya registro su voto en esta eleccion.",
+        );
+        return;
+      }
+
+      setIdentityFeedback("Identidad verificada correctamente.");
+      toast.success(nombre ? `Bienvenido(a), ${nombre}` : "Identidad verificada.");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "No se pudo validar la identidad.";
+      setIdentityFeedback(message);
+      toast.error(message);
     }
-
-    setVoter(values);
-    setStep("ballot");
   }
 
   async function submitVote() {
@@ -217,7 +272,7 @@ export function VoteFlow() {
           <CardHeader>
             <CardTitle>Identificacion del votante</CardTitle>
             <p className="text-sm leading-6 text-muted-foreground">
-              Sus datos se validan para evitar votos duplicados en esta eleccion.
+              Ingrese su numero de identidad. Si esta registrado, el sistema mostrara su nombre y lo dejara continuar.
             </p>
           </CardHeader>
           <CardContent>
@@ -225,19 +280,6 @@ export function VoteFlow() {
               className="grid max-w-2xl gap-4"
               onSubmit={handleSubmit(validateVoter)}
             >
-              <div className="grid gap-2">
-                <Label htmlFor="nombre_completo">Nombre completo</Label>
-                <Input
-                  id="nombre_completo"
-                  placeholder="Nombre y apellidos"
-                  {...register("nombre_completo")}
-                />
-                {errors.nombre_completo && (
-                  <p className="text-sm text-destructive">
-                    {errors.nombre_completo.message}
-                  </p>
-                )}
-              </div>
               <div className="grid gap-2">
                 <Label htmlFor="identidad">Numero de identidad</Label>
                 <Input
@@ -251,10 +293,65 @@ export function VoteFlow() {
                   </p>
                 )}
               </div>
+
+              {identityFeedback ? (
+                <div
+                  className={[
+                    "rounded-md border px-4 py-3 text-sm",
+                    alreadyVoted
+                      ? "border-destructive/30 bg-destructive/10 text-destructive"
+                      : voter?.nombre_completo
+                        ? "border-primary/25 bg-primary/5"
+                        : "border-border bg-muted/20",
+                  ].join(" ")}
+                >
+                  <div className="flex items-start gap-2">
+                    {alreadyVoted ? (
+                      <AlertCircle className="mt-0.5 size-4" />
+                    ) : voter?.nombre_completo ? (
+                      <CheckCircle2 className="mt-0.5 size-4 text-primary" />
+                    ) : (
+                      <Info className="mt-0.5 size-4" />
+                    )}
+                    <div className="grid gap-1">
+                      <p className="font-medium">{identityFeedback}</p>
+                      {voter?.nombre_completo ? (
+                        <p className="text-muted-foreground">
+                          Nombre:{" "}
+                          <span className="font-semibold text-foreground">
+                            {voter.nombre_completo}
+                          </span>
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+
               <Button className="w-fit" type="submit" disabled={isSubmitting}>
                 {isSubmitting ? <Spinner /> : <ShieldCheck className="size-4" />}
                 Validar identidad
               </Button>
+
+              {voter?.nombre_completo && !alreadyVoted ? (
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <Button type="button" onClick={() => setStep("ballot")}>
+                    Continuar a votar
+                    <Vote className="size-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setVoter(null);
+                      setAlreadyVoted(false);
+                      setIdentityFeedback(null);
+                    }}
+                  >
+                    Cambiar identidad
+                  </Button>
+                </div>
+              ) : null}
             </form>
           </CardContent>
         </Card>
@@ -267,6 +364,14 @@ export function VoteFlow() {
             <p className="mt-1 text-sm text-muted-foreground">
               Asigne los cargos correspondientes a cada candidato de su preferencia. Un mismo cargo no puede ser asignado a más de un candidato.
             </p>
+            {voter?.nombre_completo ? (
+              <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
+                <Badge variant="secondary" className="px-2.5 py-1 text-xs">
+                  Votante
+                </Badge>
+                <span className="font-medium">{voter.nombre_completo}</span>
+              </div>
+            ) : null}
             <div className="mt-4 flex flex-wrap gap-2">
               {context.cargos.map((cargo) => {
                 const assigned = !!selections[cargo.id];

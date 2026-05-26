@@ -1,6 +1,7 @@
 import {
   BarChart3,
   Boxes,
+  ClipboardList,
   ClipboardCheck,
   Home,
   ShieldCheck,
@@ -25,6 +26,7 @@ export const adminNavItems = [
   { href: "/admin/candidatos", label: "Candidatos", icon: Users },
   { href: "/admin/cargos", label: "Cargos", icon: Boxes },
   { href: "/admin/elecciones", label: "Elecciones", icon: ClipboardCheck },
+  { href: "/admin/padron", label: "Padron", icon: ClipboardList },
 ];
 
 export const candidatePhotoBucket = "candidate-photos";

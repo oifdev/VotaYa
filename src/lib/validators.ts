@@ -61,9 +61,21 @@ export const voterSchema = z.object({
   identidad: identitySchema,
 });
 
+// Identity-only step used for voting verification (the system will resolve the name from the padron).
+export const voterIdentitySchema = z.object({
+  identidad: identitySchema,
+});
+
 export const voteSelectionSchema = z.object({
   cargo_id: uuidSchema,
   candidato_id: uuidSchema,
+});
+
+export const padronVotanteSchema = z.object({
+  eleccion_id: uuidSchema,
+  nombre_completo: z.string().trim().min(5, "Ingrese el nombre completo.").max(140),
+  identidad: identitySchema,
+  estado: statusSchema,
 });
 
 export const castVoteSchema = z.object({
@@ -76,4 +88,6 @@ export type CargoFormValues = z.infer<typeof cargoSchema>;
 export type ElectionFormValues = z.infer<typeof electionSchema>;
 export type CandidateFormValues = z.infer<typeof candidateSchema>;
 export type VoterFormValues = z.infer<typeof voterSchema>;
+export type VoterIdentityFormValues = z.infer<typeof voterIdentitySchema>;
+export type PadronVotanteFormValues = z.infer<typeof padronVotanteSchema>;
 export type CastVoteValues = z.infer<typeof castVoteSchema>;

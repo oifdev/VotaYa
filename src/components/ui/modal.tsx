@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertTriangle, Info, X } from "lucide-react";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 
@@ -13,6 +13,7 @@ interface ModalProps {
   onConfirm?: () => void;
   title: string;
   description?: string;
+  children?: ReactNode;
   confirmLabel?: string;
   cancelLabel?: string;
   variant?: ModalVariant;
@@ -25,6 +26,7 @@ export function Modal({
   onConfirm,
   title,
   description,
+  children,
   confirmLabel = "Confirmar",
   cancelLabel = "Cancelar",
   variant = "confirm",
@@ -111,6 +113,7 @@ export function Modal({
               {description}
             </p>
           )}
+          {children ? <div className="mt-4 text-left">{children}</div> : null}
         </div>
 
         {/* Actions */}

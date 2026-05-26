@@ -181,6 +181,44 @@ export interface Database {
           },
         ];
       };
+      padron_votantes: {
+        Row: {
+          id: string;
+          eleccion_id: string;
+          nombre_completo: string;
+          identidad_hash: string;
+          identidad_masked: string;
+          estado: RecordStatus;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          eleccion_id: string;
+          nombre_completo: string;
+          identidad_hash: string;
+          identidad_masked: string;
+          estado?: RecordStatus;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          nombre_completo?: string;
+          identidad_hash?: string;
+          identidad_masked?: string;
+          estado?: RecordStatus;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "padron_votantes_eleccion_id_fkey";
+            columns: ["eleccion_id"];
+            isOneToOne: false;
+            referencedRelation: "elecciones";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       votos: {
         Row: {
           id: string;
@@ -292,3 +330,4 @@ export type Votante = Database["public"]["Tables"]["votantes"]["Row"];
 export type Voto = Database["public"]["Tables"]["votos"]["Row"];
 export type AdminUser = Database["public"]["Tables"]["users"]["Row"];
 export type AuditLog = Database["public"]["Tables"]["audit_logs"]["Row"];
+export type PadronVotante = Database["public"]["Tables"]["padron_votantes"]["Row"];
