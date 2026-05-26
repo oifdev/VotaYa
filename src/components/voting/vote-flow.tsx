@@ -290,6 +290,10 @@ export function VoteFlow() {
               )?.[0] || "";
               const selectedCargoName = context.cargos.find(c => c.id === selectedCargoId)?.nombre;
               const ballotNumber = getBallotNumber(candidate.biografia);
+              const rawBio = (candidate.biografia ?? "").trim();
+              const bioWithoutBallot = rawBio
+                .replace(/\bcasilla\s*#?\s*\d+\b[:\-–—|]*\s*/i, "")
+                .trim();
 
               return (
                 <Card 
@@ -298,11 +302,12 @@ export function VoteFlow() {
                     selectedCargoId ? "border-primary/50 ring-1 ring-primary/10 shadow-md" : "hover:border-primary/30"
                   }`}
                 >
-                  <div className="relative">
+                  <div className="relative overflow-hidden bg-muted/30">
                     <CandidatePhoto
                       src={candidate.foto_url}
                       alt={candidate.nombre_completo}
-                      className="aspect-[4/3] w-full object-cover"
+                      className="aspect-[4/3] w-full rounded-none"
+                      objectPositionClassName="object-[50%_12%]"
                     />
                     {selectedCargoId && (
                       <div className="absolute top-3 right-3">
@@ -314,15 +319,34 @@ export function VoteFlow() {
                   </div>
                   <CardContent className="flex flex-1 flex-col justify-between p-5">
                     <div className="mb-4">
-                      <div className="mb-2 flex items-center justify-between gap-2">
-                        <h3 className="font-semibold text-lg leading-tight">{candidate.nombre_completo}</h3>
-                        {ballotNumber !== null && (
-                          <Badge variant="outline">Casilla {ballotNumber}</Badge>
-                        )}
+                      <div className="flex items-start justify-between gap-4">
+                        <h3 className="min-w-0 flex-1 font-semibold text-lg leading-tight">
+                          {candidate.nombre_completo}
+                        </h3>
+
+                        {ballotNumber !== null ? (
+                          <div className="shrink-0 rounded-md border bg-card/40 px-3 py-2 text-center backdrop-blur-sm">
+                            <div className="text-5xl font-extrabold leading-none tabular-nums tracking-tight sm:text-6xl">
+                              {ballotNumber}
+                            </div>
+                            <div className="mt-1 text-sm font-semibold uppercase tracking-widest text-muted-foreground sm:text-base">
+                              Casilla
+                            </div>
+                          </div>
+                        ) : null}
                       </div>
-                      <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">
-                        {candidate.biografia ?? "Sin biografia registrada."}
-                      </p>
+
+                      {ballotNumber !== null ? (
+                        bioWithoutBallot ? (
+                          <p className="mt-3 line-clamp-3 text-sm text-muted-foreground">
+                            {bioWithoutBallot}
+                          </p>
+                        ) : null
+                      ) : (
+                        <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">
+                          {rawBio || "Sin descripcion registrada."}
+                        </p>
+                      )}
                     </div>
                     <div className="grid gap-2">
                       <Label htmlFor={`cargo-select-${candidate.id}`} className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
