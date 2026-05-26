@@ -43,7 +43,7 @@ export function AdminSidebar() {
       <div className="mt-8 grid gap-2 border-t pt-4">
         <ThemeToggle />
         <Button asChild variant="outline" className="justify-start">
-          <Link href="/logout">
+          <Link href="/logout" prefetch={false}>
             <LogOut className="size-4" />
             Cerrar sesion
           </Link>
