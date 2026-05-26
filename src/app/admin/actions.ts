@@ -3,7 +3,6 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 import { getAdminSession } from "@/lib/auth";
-import { candidatePhotoBucket } from "@/lib/constants";
 import {
   emptyResults,
   getResultsPayload,
@@ -150,47 +149,6 @@ export async function getCandidatosAction(): Promise<
 
   if (error) return { error: error.message };
   return { data: { candidatos: (data ?? []) as CandidateWithRelations[] } };
-}
-
-export async function uploadCandidatePhotoAction(
-  formData: FormData,
-): Promise<ActionResult<{ publicUrl: string }>> {
-  const admin = await getAdminSupabase();
-  if (!admin.data) return { error: admin.error };
-  const { supabase, user } = admin.data;
-
-  const file = formData.get("file");
-
-  if (!(file instanceof File) || file.size === 0) {
-    return { error: "Seleccione una fotografia valida." };
-  }
-
-  if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
-    return { error: "La fotografia debe ser PNG, JPG o WebP." };
-  }
-
-  if (file.size > 5 * 1024 * 1024) {
-    return { error: "La fotografia no debe superar 5 MB." };
-  }
-
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-").toLowerCase();
-  const path = `${user.id}/candidates/${crypto.randomUUID()}-${safeName}`;
-
-  const { error } = await supabase.storage
-    .from(candidatePhotoBucket)
-    .upload(path, file, {
-      cacheControl: "31536000",
-      contentType: file.type,
-      upsert: false,
-    });
-
-  if (error) return { error: error.message };
-
-  const { data } = supabase.storage
-    .from(candidatePhotoBucket)
-    .getPublicUrl(path);
-
-  return { data: { publicUrl: data.publicUrl } };
 }
 
 export async function createEleccionAction(payload: {

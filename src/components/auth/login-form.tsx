@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LockKeyhole, Mail } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -22,6 +22,7 @@ const loginSchema = z.object({
 type LoginValues = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const redirectTo = (searchParams?.get("redirect")) || "/admin";
@@ -44,6 +45,9 @@ export function LoginForm() {
       if (result?.error) {
         throw new Error(result.error);
       }
+
+      router.replace(result?.redirectTo ?? "/admin");
+      router.refresh();
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "No fue posible iniciar sesion.",

@@ -3,7 +3,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 export async function loginAction(
   values: { email: string; password: string },
@@ -28,7 +27,7 @@ export async function loginAction(
   }
 
   revalidatePath("/", "layout");
-  redirect(safeRedirectPath(redirectTo));
+  return { success: true, redirectTo: safeRedirectPath(redirectTo) };
 }
 
 export async function logoutAction() {

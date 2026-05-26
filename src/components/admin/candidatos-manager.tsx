@@ -111,16 +111,23 @@ export function CandidatosManager() {
   }
 
   async function uploadPhoto(file: File) {
-    const { uploadCandidatePhotoAction } = await import("@/app/admin/actions");
     const formData = new FormData();
     formData.append("file", file);
 
-    const result = await uploadCandidatePhotoAction(formData);
-    if (result.error || !result.data) {
-      throw new Error(result.error ?? "No se pudo subir la fotografia.");
+    const response = await fetch("/api/admin/candidate-photo", {
+      method: "POST",
+      body: formData,
+    });
+    const result = (await response.json()) as {
+      publicUrl?: string;
+      message?: string;
+    };
+
+    if (!response.ok || !result.publicUrl) {
+      throw new Error(result.message ?? "No se pudo subir la fotografia.");
     }
 
-    return result.data.publicUrl;
+    return result.publicUrl;
   }
 
   async function confirmRemove() {
