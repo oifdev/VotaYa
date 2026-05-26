@@ -47,3 +47,24 @@ export function absoluteUrl(path: string) {
 
   return `${baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
 }
+
+export function getBallotNumber(value?: string | null) {
+  const match = value?.match(/casilla\s*(\d+)/i);
+  return match ? Number(match[1]) : null;
+}
+
+export function compareByBallotNumber<
+  T extends { biografia?: string | null; nombre_completo: string },
+>(first: T, second: T) {
+  const firstNumber = getBallotNumber(first.biografia);
+  const secondNumber = getBallotNumber(second.biografia);
+
+  if (firstNumber !== null && secondNumber !== null) {
+    return firstNumber - secondNumber;
+  }
+
+  if (firstNumber !== null) return -1;
+  if (secondNumber !== null) return 1;
+
+  return first.nombre_completo.localeCompare(second.nombre_completo, "es-HN");
+}

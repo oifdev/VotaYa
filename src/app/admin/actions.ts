@@ -3,6 +3,7 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 import { getAdminSession } from "@/lib/auth";
+import { writeAuditLog } from "@/lib/audit";
 import {
   emptyResults,
   getResultsPayload,
@@ -175,6 +176,13 @@ export async function createEleccionAction(payload: {
     .single();
 
   if (error) return { error: error.message };
+  await writeAuditLog(supabase, {
+    actorId: user.id,
+    action: "eleccion.created",
+    entityType: "eleccion",
+    entityId: data.id,
+    metadata: { nombre: data.nombre, estado: data.estado },
+  });
   return { data: { eleccion: data as Eleccion } };
 }
 
@@ -195,6 +203,13 @@ export async function updateEleccionAction(
     .single();
 
   if (error) return { error: error.message };
+  await writeAuditLog(supabase, {
+    actorId: user.id,
+    action: "eleccion.updated",
+    entityType: "eleccion",
+    entityId: data.id,
+    metadata: { nombre: data.nombre, estado: data.estado },
+  });
   return { data: { eleccion: data as Eleccion } };
 }
 
@@ -205,6 +220,13 @@ export async function deleteEleccionAction(
   if (!admin.data) return { error: admin.error };
   const { supabase, user } = admin.data;
 
+  const { data: election } = await supabase
+    .from("elecciones")
+    .select("nombre,estado")
+    .eq("id", id)
+    .eq("organizer_id", user.id)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("elecciones")
     .delete()
@@ -212,6 +234,13 @@ export async function deleteEleccionAction(
     .eq("organizer_id", user.id);
 
   if (error) return { error: error.message };
+  await writeAuditLog(supabase, {
+    actorId: user.id,
+    action: "eleccion.deleted",
+    entityType: "eleccion",
+    entityId: id,
+    metadata: election,
+  });
   return { data: { success: true } };
 }
 
@@ -234,6 +263,13 @@ export async function createCargoAction(
     .single();
 
   if (error) return { error: error.message };
+  await writeAuditLog(supabase, {
+    actorId: user.id,
+    action: "cargo.created",
+    entityType: "cargo",
+    entityId: data.id,
+    metadata: { nombre: data.nombre, eleccion_id: data.eleccion_id },
+  });
   return { data: { cargo: data as Cargo } };
 }
 
@@ -258,6 +294,13 @@ export async function updateCargoAction(
     .single();
 
   if (error) return { error: error.message };
+  await writeAuditLog(supabase, {
+    actorId: user.id,
+    action: "cargo.updated",
+    entityType: "cargo",
+    entityId: data.id,
+    metadata: { nombre: data.nombre, eleccion_id: data.eleccion_id },
+  });
   return { data: { cargo: data as Cargo } };
 }
 
@@ -273,8 +316,21 @@ export async function deleteCargoAction(
     return { error: "No tiene permisos para eliminar este cargo." };
   }
 
+  const { data: cargo } = await supabase
+    .from("cargos")
+    .select("nombre,eleccion_id")
+    .eq("id", id)
+    .maybeSingle();
+
   const { error } = await supabase.from("cargos").delete().eq("id", id);
   if (error) return { error: error.message };
+  await writeAuditLog(supabase, {
+    actorId: user.id,
+    action: "cargo.deleted",
+    entityType: "cargo",
+    entityId: id,
+    metadata: cargo,
+  });
   return { data: { success: true } };
 }
 
@@ -297,6 +353,16 @@ export async function createCandidatoAction(
     .single();
 
   if (error) return { error: error.message };
+  await writeAuditLog(supabase, {
+    actorId: user.id,
+    action: "candidato.created",
+    entityType: "candidato",
+    entityId: data.id,
+    metadata: {
+      nombre_completo: data.nombre_completo,
+      eleccion_id: data.eleccion_id,
+    },
+  });
   return { data: { candidato: data as Candidato } };
 }
 
@@ -321,6 +387,16 @@ export async function updateCandidatoAction(
     .single();
 
   if (error) return { error: error.message };
+  await writeAuditLog(supabase, {
+    actorId: user.id,
+    action: "candidato.updated",
+    entityType: "candidato",
+    entityId: data.id,
+    metadata: {
+      nombre_completo: data.nombre_completo,
+      eleccion_id: data.eleccion_id,
+    },
+  });
   return { data: { candidato: data as Candidato } };
 }
 
@@ -336,12 +412,25 @@ export async function deleteCandidatoAction(
     return { error: "No tiene permisos para eliminar este candidato." };
   }
 
+  const { data: candidate } = await supabase
+    .from("candidatos")
+    .select("nombre_completo,eleccion_id")
+    .eq("id", id)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("candidatos")
     .delete()
     .eq("id", id);
 
   if (error) return { error: error.message };
+  await writeAuditLog(supabase, {
+    actorId: user.id,
+    action: "candidato.deleted",
+    entityType: "candidato",
+    entityId: id,
+    metadata: candidate,
+  });
   return { data: { success: true } };
 }
 

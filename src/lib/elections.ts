@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { compareByBallotNumber } from "@/lib/utils";
 import type { Candidato, Cargo, Database, Eleccion } from "@/types/database";
 import type { DashboardStats, ResultsPayload } from "@/types/domain";
 
@@ -58,7 +59,11 @@ export async function getVotingContext(supabase: Client) {
   if (cargosError) throw cargosError;
   if (candidatosError) throw candidatosError;
 
-  return { election, cargos: cargos ?? [], candidatos: candidatos ?? [] };
+  return {
+    election,
+    cargos: cargos ?? [],
+    candidatos: (candidatos ?? []).slice().sort(compareByBallotNumber),
+  };
 }
 
 export async function getResultsPayload(
@@ -108,7 +113,7 @@ export async function getResultsPayload(
   if (voterError) throw voterError;
 
   const voteRows = votos ?? [];
-  const candidateRows = candidatos ?? [];
+  const candidateRows = (candidatos ?? []).slice().sort(compareByBallotNumber);
   const cargoRows = cargos ?? [];
 
   const cargosPayload = cargoRows

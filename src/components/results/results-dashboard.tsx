@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Spinner } from "@/components/ui/spinner";
+import { WinnersByCargo } from "@/components/results/winners-by-cargo";
 import {
   createSupabaseBrowserClient,
   hasSupabaseBrowserEnv,
@@ -162,6 +163,8 @@ export function ResultsDashboard() {
           </div>
         </CardHeader>
       </Card>
+
+      <WinnersByCargo results={results} />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Metric label="Votantes" value={results.totals.votantes} />

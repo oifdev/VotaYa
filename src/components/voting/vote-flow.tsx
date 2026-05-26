@@ -23,7 +23,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
-import { formatDateTime } from "@/lib/utils";
+import { formatDateTime, getBallotNumber } from "@/lib/utils";
 import { voterSchema, type VoterFormValues } from "@/lib/validators";
 import type { VotingContext } from "@/types/domain";
 
@@ -289,6 +289,7 @@ export function VoteFlow() {
                 ([, cId]) => cId === candidate.id
               )?.[0] || "";
               const selectedCargoName = context.cargos.find(c => c.id === selectedCargoId)?.nombre;
+              const ballotNumber = getBallotNumber(candidate.biografia);
 
               return (
                 <Card 
@@ -313,7 +314,12 @@ export function VoteFlow() {
                   </div>
                   <CardContent className="flex flex-1 flex-col justify-between p-5">
                     <div className="mb-4">
-                      <h3 className="font-semibold text-lg leading-tight">{candidate.nombre_completo}</h3>
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <h3 className="font-semibold text-lg leading-tight">{candidate.nombre_completo}</h3>
+                        {ballotNumber !== null && (
+                          <Badge variant="outline">Casilla {ballotNumber}</Badge>
+                        )}
+                      </div>
                       <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">
                         {candidate.biografia ?? "Sin biografia registrada."}
                       </p>

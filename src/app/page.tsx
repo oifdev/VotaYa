@@ -73,7 +73,7 @@ export default function Home() {
             <div className="flex items-center justify-between border-b pb-4">
               <div>
                 <p className="text-sm text-muted-foreground">Eleccion activa</p>
-                <h2 className="text-xl font-semibold">Comite 2026</h2>
+                <h2 className="text-xl font-semibold">Junta Directiva 2026</h2>
               </div>
               <div className="rounded-md bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
                 En vivo

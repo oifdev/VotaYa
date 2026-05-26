@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { WinnersByCargo } from "@/components/results/winners-by-cargo";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatPercent } from "@/lib/utils";
 import type { AuditLog } from "@/types/database";
@@ -119,6 +120,8 @@ export function DashboardOverview() {
           );
         })}
       </div>
+
+      <WinnersByCargo results={data?.results} />
 
       <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
         <Card>
