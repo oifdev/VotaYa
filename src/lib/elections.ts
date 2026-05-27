@@ -119,13 +119,6 @@ export async function getResultsPayload(
   const cargosPayload = cargoRows
     .map((cargo) => {
       const total = voteRows.filter((vote) => vote.cargo_id === cargo.id).length;
-      const maxVotes = Math.max(
-        0,
-        ...candidateRows.map(
-          (candidate) =>
-            voteRows.filter((vote) => vote.cargo_id === cargo.id && vote.candidato_id === candidate.id).length,
-        ),
-      );
 
       return {
         cargo_id: cargo.id,
@@ -144,17 +137,21 @@ export async function getResultsPayload(
             cargo_nombre: cargo.nombre,
             votos: votes,
             porcentaje: total > 0 ? (votes / total) * 100 : 0,
-            isWinner: total > 0 && votes === maxVotes && votes > 0,
+            // Winner is computed after tallying all cargos to enforce exclusivity:
+            // a candidate can win only one cargo, resolved by cargo priority (orden).
+            isWinner: false,
           };
         }),
       };
     })
     .filter((cargo) => cargo.candidatos.length > 0);
 
+  const cargosWithWinners = applyUniqueWinnerByCargoPriority(cargosPayload);
+
   const totalVotes = voteRows.length;
   const participation =
-    cargosPayload.length > 0 && voterCount
-      ? (totalVotes / (voterCount * cargosPayload.length)) * 100
+    cargosWithWinners.length > 0 && voterCount
+      ? (totalVotes / (voterCount * cargosWithWinners.length)) * 100
       : 0;
 
   return {
@@ -162,13 +159,55 @@ export async function getResultsPayload(
     totals: {
       votantes: voterCount ?? 0,
       votos: totalVotes,
-      cargos: cargosPayload.length,
+      cargos: cargosWithWinners.length,
       candidatos: candidateRows.length,
       participacionPromedio: participation,
     },
-    cargos: cargosPayload,
+    cargos: cargosWithWinners,
     updatedAt: new Date().toISOString(),
   };
+}
+
+function applyUniqueWinnerByCargoPriority(results: ResultsPayload["cargos"]) {
+  // Rule: a candidate cannot win more than one cargo.
+  // We assign cargos in priority order (already sorted by `cargos.orden` in the SQL query),
+  // picking the highest-voted eligible candidate for each cargo.
+  // Ties are broken by ballot order (the candidates list is already sorted by ballot number).
+  const used = new Set<string>();
+
+  return results.map((cargo) => {
+    let winnerId: string | null = null;
+    let maxVotes = 0;
+    let winnerIndex = Number.POSITIVE_INFINITY;
+
+    cargo.candidatos.forEach((candidate, index) => {
+      if (used.has(candidate.candidato_id)) return;
+      // If there are no votes for the cargo, we don't assign any winner.
+      if (cargo.total_votos <= 0) return;
+
+      if (candidate.votos > maxVotes) {
+        maxVotes = candidate.votos;
+        winnerId = candidate.candidato_id;
+        winnerIndex = index;
+        return;
+      }
+
+      if (candidate.votos === maxVotes && index < winnerIndex) {
+        winnerId = candidate.candidato_id;
+        winnerIndex = index;
+      }
+    });
+
+    if (winnerId) used.add(winnerId);
+
+    return {
+      ...cargo,
+      candidatos: cargo.candidatos.map((candidate) => ({
+        ...candidate,
+        isWinner: winnerId ? candidate.candidato_id === winnerId : false,
+      })),
+    };
+  });
 }
 
 export function resultsToDashboardStats(results: ResultsPayload): DashboardStats {

@@ -1,6 +1,7 @@
 import { Trophy, Vote } from "lucide-react";
 
 import { CandidatePhoto } from "@/components/candidate-photo";
+import { WinnerAssignmentNote } from "@/components/results/winner-assignment-note";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -24,6 +25,9 @@ export function WinnersByCargo({ results }: WinnersByCargoProps) {
         </div>
       </CardHeader>
       <CardContent>
+        <div className="mb-4">
+          <WinnerAssignmentNote cargos={cargos} />
+        </div>
         {cargos.length && hasVotes ? (
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {cargos.map((cargo) => {
@@ -70,7 +74,9 @@ export function WinnersByCargo({ results }: WinnersByCargoProps) {
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground">
-                      Sin votos registrados para este cargo.
+                      {cargo.total_votos > 0
+                        ? "Sin ganador asignable: no quedan candidatos disponibles para este cargo (todos ya fueron asignados a cargos de mayor prioridad)."
+                        : "Sin votos registrados para este cargo."}
                     </p>
                   )}
                 </div>

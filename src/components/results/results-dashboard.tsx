@@ -285,7 +285,7 @@ export function ResultsDashboard() {
                             </p>
                           </div>
                           {candidate.isWinner && (
-                            <Badge variant="success">Ganador</Badge>
+                            <Badge variant="success">Ganador final</Badge>
                           )}
                         </div>
                         <div className="mt-3 h-2 rounded-full bg-muted">
