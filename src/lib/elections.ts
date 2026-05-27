@@ -147,11 +147,12 @@ export async function getResultsPayload(
     .filter((cargo) => cargo.candidatos.length > 0);
 
   const cargosWithWinners = applyUniqueWinnerByCargoPriority(cargosPayload);
+  const cargosOrdered = sortCargoCandidatesBySupport(cargosWithWinners);
 
   const totalVotes = voteRows.length;
   const participation =
-    cargosWithWinners.length > 0 && voterCount
-      ? (totalVotes / (voterCount * cargosWithWinners.length)) * 100
+    cargosOrdered.length > 0 && voterCount
+      ? (totalVotes / (voterCount * cargosOrdered.length)) * 100
       : 0;
 
   return {
@@ -159,11 +160,11 @@ export async function getResultsPayload(
     totals: {
       votantes: voterCount ?? 0,
       votos: totalVotes,
-      cargos: cargosWithWinners.length,
+      cargos: cargosOrdered.length,
       candidatos: candidateRows.length,
       participacionPromedio: participation,
     },
-    cargos: cargosWithWinners,
+    cargos: cargosOrdered,
     updatedAt: new Date().toISOString(),
   };
 }
@@ -206,6 +207,28 @@ function applyUniqueWinnerByCargoPriority(results: ResultsPayload["cargos"]) {
         ...candidate,
         isWinner: winnerId ? candidate.candidato_id === winnerId : false,
       })),
+    };
+  });
+}
+
+function sortCargoCandidatesBySupport(results: ResultsPayload["cargos"]) {
+  // Presentation: order candidates by support within each cargo.
+  // Tie-breaker preserves the original ordering (ballot order).
+  return results.map((cargo) => {
+    const withIndex = cargo.candidatos.map((candidate, index) => ({
+      candidate,
+      index,
+    }));
+
+    withIndex.sort((a, b) => {
+      const diff = b.candidate.votos - a.candidate.votos;
+      if (diff !== 0) return diff;
+      return a.index - b.index;
+    });
+
+    return {
+      ...cargo,
+      candidatos: withIndex.map((item) => item.candidate),
     };
   });
 }

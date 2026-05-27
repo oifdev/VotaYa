@@ -7,6 +7,7 @@ import {
   ShieldCheck,
   Trophy,
   Users,
+  UserCheck,
   Vote,
 } from "lucide-react";
 
@@ -27,6 +28,7 @@ export const adminNavItems = [
   { href: "/admin/cargos", label: "Cargos", icon: Boxes },
   { href: "/admin/elecciones", label: "Elecciones", icon: ClipboardCheck },
   { href: "/admin/padron", label: "Padron", icon: ClipboardList },
+  { href: "/admin/votantes", label: "Votantes", icon: UserCheck },
 ];
 
 export const candidatePhotoBucket = "candidate-photos";
